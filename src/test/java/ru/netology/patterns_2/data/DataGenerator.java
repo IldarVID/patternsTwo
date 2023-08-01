@@ -1,60 +1,79 @@
 package ru.netology.patterns_2.data;
 
 import com.github.javafaker.Faker;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.filter.log.LogDetail;
+import io.restassured.http.ContentType;
+import io.restassured.specification.RequestSpecification;
 import lombok.Value;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Locale;
-import java.util.Random;
+
+import static io.restassured.RestAssured.given;
 
 public class DataGenerator {
+    private static final RequestSpecification requestSpec = new RequestSpecBuilder()
+            .setBaseUri("http://localhost")
+            .setPort(9999)
+            .setAccept(ContentType.JSON)
+            .setContentType(ContentType.JSON)
+            .log(LogDetail.ALL)
+            .build();
+    private static final Faker faker = new Faker(new Locale("en"));
+
     private DataGenerator() {
     }
 
-    public static String generateDate(int shift) {
-        // TODO: добавить логику для объявления переменной date и задания её значения, для генерации строки с датой
-        // Вы можете использовать класс LocalDate и его методы для получения и форматирования даты
-        return LocalDate.now().plusDays(shift).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+    private static void sendRequest(RegistrationDto user) {
+        // TODO: отправить запрос на указанный в требованиях path, передав в body запроса объект user
+        //  и не забудьте передать подготовленную спецификацию requestSpec.
+        //  Пример реализации метода показан в условии к задаче.
+        given()
+                .spec(requestSpec)
+                .body(user)
+                .when()
+                .post("/api/system/users")
+                .then()
+                .statusCode(200);
     }
 
-    public static String generateCity() {
-        // TODO: добавить логику для объявления переменной city и задания её значения, генерацию можно выполнить
-        // с помощью Faker, либо используя массив валидных городов и класс Random
-        var cities = new String[]{"Москва", "Краснодар", "Белгород", "Севастополь", "Орел", "Курск", "Брянск", "Екатеринбург",
-                "Воронеж", "Калининград"};
-        return cities[new Random().nextInt(cities.length)];
+    public static String getRandomLogin() {
+        // TODO: добавить логику для объявления переменной login и задания её значения, для генерации
+        //  случайного логина используйте faker
+        String login = faker.name().username();
+        return login;
     }
 
-    public static String generateName(String locale) {
-        // TODO: добавить логику для объявления переменной name и задания её значения, для генерации можно
-        // использовать Faker
-        var faker = new Faker(new Locale(locale));
-        return faker.name().lastName() + " " + faker.name().firstName();
-    }
-
-    public static String generatePhone(String locale) {
-            // TODO: добавить логику для объявления переменной phone и задания её значения, для генерации можно
-        // использовать Faker
-        var faker = new Faker(new Locale(locale));
-        return faker.phoneNumber().phoneNumber();
+    public static String getRandomPassword() {
+        // TODO: добавить логику для объявления переменной password и задания её значения, для генерации
+        //  случайного пароля используйте faker
+        String password = faker.internet().password();
+        return password;
     }
 
     public static class Registration {
         private Registration() {
         }
 
-        public static UserInfo generateUser(String locale) {
-            // TODO: добавить логику для создания пользователя user с использованием методов generateCity(locale),
-            // generateName(locale), generatePhone(locale)
-            return new UserInfo(generateCity(), generateName(locale), generatePhone(locale));
+        public static RegistrationDto getUser(String status) {
+            // TODO: создать пользователя user используя методы getRandomLogin(), getRandomPassword() и параметр status
+            var user = new RegistrationDto(getRandomLogin(), getRandomPassword(), status);
+            return user;
+        }
+
+        public static RegistrationDto getRegisteredUser(String status) {
+            // TODO: объявить переменную registeredUser и присвоить ей значение возвращённое getUser(status).
+            // Послать запрос на регистрацию пользователя с помощью вызова sendRequest(registeredUser)
+            var registeredUser = getUser(status);
+            sendRequest(registeredUser);
+            return registeredUser;
         }
     }
 
     @Value
-    public static class UserInfo {
-        String city;
-        String name;
-        String phone;
+    public static class RegistrationDto {
+        String login;
+        String password;
+        String status;
     }
 }
