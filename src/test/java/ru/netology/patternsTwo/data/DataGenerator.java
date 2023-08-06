@@ -1,4 +1,4 @@
-package ru.netology.patterns_2.data;
+package ru.netology.patternsTwo.data;
 
 import com.github.javafaker.Faker;
 import io.restassured.builder.RequestSpecBuilder;
